@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V12.3 PRO - Telegram Signal Feed</title>
+    <title>V12.3 PRO - Live Signal Feed</title>
     <style>
         * {
             margin: 0;
@@ -35,6 +35,24 @@
             border: 1px solid rgba(255, 215, 0, 0.3);
             text-align: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
         .header-emoji {
@@ -90,7 +108,7 @@
         /* Connection Info */
         .connection-info {
             background: rgba(0, 0, 0, 0.3);
-            padding: 10px 16px;
+            padding: 12px 16px;
             border-radius: 10px;
             display: flex;
             justify-content: space-between;
@@ -134,7 +152,37 @@
             font-weight: 600;
         }
 
-        /* Signal Cards */
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+            border: 1px solid rgba(100, 100, 150, 0.2);
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #ffd700;
+            margin-top: 4px;
+        }
+
+        /* Signal Feed */
         .signal-feed {
             display: flex;
             flex-direction: column;
@@ -202,12 +250,21 @@
         }
 
         /* Signal Type Colors */
-        .signal-new { border-left: 3px solid #ffd700; }
-        .signal-entry { border-left: 3px solid #00ff88; }
-        .signal-win { border-left: 3px solid #00ff88; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
-        .signal-loss { border-left: 3px solid #ff4757; box-shadow: 0 0 20px rgba(255, 71, 87, 0.2); }
-        .signal-refund { border-left: 3px solid #ffd700; }
-        .signal-martingale { border-left: 3px solid #ff6b6b; border: 2px solid rgba(255, 107, 107, 0.3); }
+        .signal-new { border-left: 4px solid #ffd700; }
+        .signal-entry { border-left: 4px solid #00ff88; }
+        .signal-win { 
+            border-left: 4px solid #00ff88; 
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
+        }
+        .signal-loss { 
+            border-left: 4px solid #ff4757; 
+            box-shadow: 0 0 20px rgba(255, 71, 87, 0.15);
+        }
+        .signal-refund { border-left: 4px solid #ffd700; }
+        .signal-martingale { 
+            border-left: 4px solid #ff6b6b; 
+            border: 2px solid rgba(255, 107, 107, 0.3);
+        }
 
         /* Loading State */
         .loading {
@@ -254,56 +311,24 @@
             transform: translateY(-1px);
         }
 
-        /* Manual Input Section */
-        .manual-section {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px;
+        /* Error State */
+        .error-state {
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
             border-radius: 12px;
-            border: 1px solid rgba(100, 100, 150, 0.2);
+            padding: 20px;
+            text-align: center;
+            color: #ff4757;
         }
 
-        .manual-title {
-            font-size: 12px;
-            color: #8892b0;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .paste-area {
-            width: 100%;
-            min-height: 100px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(100, 100, 150, 0.3);
-            border-radius: 8px;
-            padding: 12px;
+        .error-state button {
+            margin-top: 10px;
+            background: #ff4757;
             color: #fff;
-            font-family: 'Consolas', monospace;
-            font-size: 12px;
-            resize: vertical;
-            margin-bottom: 10px;
-        }
-
-        .paste-area:focus {
-            outline: none;
-            border-color: #ffd700;
-        }
-
-        .add-btn {
-            width: 100%;
-            background: linear-gradient(145deg, #ffd700 0%, #ffaa00 100%);
-            color: #000;
             border: none;
-            padding: 12px;
-            border-radius: 8px;
-            font-weight: 800;
+            padding: 8px 16px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4);
         }
 
         /* Scrollbar */
@@ -339,35 +364,31 @@
         <div class="connection-info">
             <div class="connection-left">
                 <span>📡</span>
-                <span>Telegram Channel</span>
+                <span id="connectionText">Connecting...</span>
             </div>
             <div class="connection-right">
-                <span class="api-status api-connected" id="apiStatus">● Connected</span>
+                <span class="api-status api-disconnected" id="apiStatus">● Offline</span>
                 <span class="last-update" id="lastUpdate">--:--</span>
             </div>
         </div>
 
-        <!-- Manual Paste Area (Fallback) -->
-        <div class="manual-section" id="manualSection">
-            <div class="manual-title">📋 Paste Telegram Signal (Manual)</div>
-            <textarea class="paste-area" id="pasteArea" placeholder="Paste your Telegram signal message here...
-
-Example:
-🎯 NEW SIGNAL DETECTED
-━━━━━━━━━━━━━━━━━━━━
-⬆️ CALL | EUR/USD
-🔥 Confidence: 85%
-━━━━━━━━━━━━━━━━━━━━
-🕐 Entry: 17:45 IST
-Countdown: 45 seconds"></textarea>
-            <button class="add-btn" onclick="addManualSignal()">➕ ADD TO DASHBOARD</button>
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-box">
+                <div class="stat-label">Total Signals</div>
+                <div class="stat-value" id="totalSignals">-</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Last Update</div>
+                <div class="stat-value" id="lastUpdateTime" style="font-size: 14px;">-</div>
+            </div>
         </div>
 
         <!-- Signal Feed -->
         <div class="signal-feed" id="signalFeed">
             <div class="loading">
                 <div class="loading-spinner"></div>
-                <div>Connecting to Telegram feed...</div>
+                <div>Connecting to signal feed...</div>
             </div>
         </div>
 
@@ -375,101 +396,68 @@ Countdown: 45 seconds"></textarea>
 
     <script>
         // ===== CONFIGURATION =====
-        // Option 1: GitHub JSON URL (if using Python bridge)
-        const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/hypetraderruvin/KingTrader/main/signals.json';
+        // URL to your signals.json file in GitHub
+        const SIGNALS_URL = 'https://raw.githubusercontent.com/hypetraderruvin/KingTrader/main/signals.json';
 
-        // Option 2: Direct Telegram polling (CORS proxy needed)
-        const BOT_TOKEN = '8543942747:AAEWZ8SO11ndikTB9drYgsnf17igNhFmp9w';
-        const CHANNEL_ID = '-1003702645985';
-
-        // Use GitHub method by default (more reliable)
-        const USE_GITHUB_METHOD = true;
+        // Refresh interval (10 seconds)
+        const REFRESH_INTERVAL = 10000;
 
         // ===== STATE =====
-        let signals = [];
-        let lastUpdateId = 0;
+        let lastSignals = [];
+        let isFirstLoad = true;
 
-        // ===== PARSE TELEGRAM MESSAGE =====
-        function parseTelegramMessage(text) {
-            if (!text) return null;
+        // ===== PARSE SIGNAL TYPE =====
+        function parseSignalType(text) {
+            if (!text) return { type: 'signal-new', title: '📊 SIGNAL', emoji: '📊' };
 
-            const lines = text.split('\n');
-            const firstLine = lines[0] || '';
-
-            // Detect signal type
-            let type = 'signal-new';
-            let title = '📊 SIGNAL';
-            let emoji = '📊';
-
-            if (firstLine.includes('🎯 NEW SIGNAL')) {
-                type = 'signal-new';
-                title = '🎯 NEW SIGNAL DETECTED';
-                emoji = '🎯';
-            } else if (firstLine.includes('🚀 ENTRY')) {
-                type = 'signal-entry';
-                title = '🚀 ENTRY EXECUTED';
-                emoji = '🚀';
-            } else if (firstLine.includes('✅ RESULT') || text.includes('PROFIT')) {
-                type = 'signal-win';
-                title = '✅ RESULT - WIN';
-                emoji = '✅';
-            } else if (firstLine.includes('❌ RESULT') || text.includes('LOSS')) {
-                type = 'signal-loss';
-                title = '❌ RESULT - LOSS';
-                emoji = '❌';
-            } else if (firstLine.includes('🔄 RESULT') || text.includes('REFUND')) {
-                type = 'signal-refund';
-                title = '🔄 RESULT - REFUND';
-                emoji = '🔄';
-            } else if (firstLine.includes('⚠️ MARTINGALE')) {
-                type = 'signal-martingale';
-                title = '⚠️ MARTINGALE ACTIVATED';
-                emoji = '⚠️';
+            if (text.includes('🎯 NEW SIGNAL')) {
+                return { type: 'signal-new', title: '🎯 NEW SIGNAL', emoji: '🎯' };
+            } else if (text.includes('🚀 ENTRY')) {
+                return { type: 'signal-entry', title: '🚀 ENTRY EXECUTED', emoji: '🚀' };
+            } else if (text.includes('✅ RESULT') || text.includes('PROFIT')) {
+                return { type: 'signal-win', title: '✅ RESULT - WIN', emoji: '✅' };
+            } else if (text.includes('❌ RESULT') || text.includes('LOSS')) {
+                return { type: 'signal-loss', title: '❌ RESULT - LOSS', emoji: '❌' };
+            } else if (text.includes('🔄 RESULT') || text.includes('REFUND')) {
+                return { type: 'signal-refund', title: '🔄 RESULT - REFUND', emoji: '🔄' };
+            } else if (text.includes('⚠️ MARTINGALE')) {
+                return { type: 'signal-martingale', title: '⚠️ MARTINGALE', emoji: '⚠️' };
             }
 
-            // Extract pair
-            let pair = 'EUR/USD';
-            const pairMatch = text.match(/([A-Z]{3}\/[A-Z]{3})/);
-            if (pairMatch) pair = pairMatch[1];
+            return { type: 'signal-new', title: '📊 SIGNAL', emoji: '📊' };
+        }
 
-            // Extract confidence
-            let confidence = '';
-            const confMatch = text.match(/Confidence:\s*(\d+)%/);
-            if (confMatch) confidence = confMatch[1] + '%';
-
-            // Extract time
-            let time = '';
-            const timeMatch = text.match(/(\d{2}:\d{2})/);
-            if (timeMatch) time = timeMatch[1];
-
-            return {
-                type,
-                title,
-                emoji,
-                pair,
-                confidence,
-                time,
-                text,
-                timestamp: new Date().toISOString()
-            };
+        // ===== EXTRACT PAIR =====
+        function extractPair(text) {
+            if (!text) return 'EUR/USD';
+            const match = text.match(/([A-Z]{3}\/[A-Z]{3})/);
+            return match ? match[1] : 'EUR/USD';
         }
 
         // ===== RENDER SIGNAL CARD =====
         function renderSignalCard(signal) {
-            const card = document.createElement('div');
-            card.className = `signal-card ${signal.type}`;
+            const parsed = parseSignalType(signal.text);
+            const pair = extractPair(signal.text);
 
-            const time = signal.time || new Date().toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
-                minute: '2-digit',
-                hour12: false 
-            }) + ' IST';
+            // Format time
+            let timeStr = signal.date_formatted || 'Unknown';
+            if (signal.date) {
+                const date = new Date(signal.date * 1000);
+                timeStr = date.toLocaleTimeString('en-US', { 
+                    hour: '2-digit', 
+                    minute: '2-digit',
+                    hour12: false 
+                }) + ' IST';
+            }
+
+            const card = document.createElement('div');
+            card.className = `signal-card ${parsed.type}`;
 
             card.innerHTML = `
                 <div class="card-header">
-                    <span class="card-emoji">${signal.emoji}</span>
-                    <span class="card-title">${signal.title}</span>
-                    <span class="card-time">${time}</span>
+                    <span class="card-emoji">${parsed.emoji}</span>
+                    <span class="card-title">${parsed.title}</span>
+                    <span class="card-time">${timeStr}</span>
                 </div>
                 <div class="divider"></div>
                 <div class="card-body">${escapeHtml(signal.text)}</div>
@@ -484,110 +472,152 @@ Countdown: 45 seconds"></textarea>
             return div.innerHTML;
         }
 
-        // ===== FETCH FROM GITHUB =====
-        async function fetchFromGitHub() {
+        // ===== FETCH SIGNALS =====
+        async function fetchSignals() {
             try {
                 // Add cache-buster to get fresh data
-                const url = GITHUB_JSON_URL + '?t=' + Date.now();
+                const url = SIGNALS_URL + '?t=' + Date.now();
                 const response = await fetch(url);
 
-                if (!response.ok) throw new Error('Failed to fetch');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
 
                 const data = await response.json();
 
+                // Update UI
+                updateUI(data);
+
+                // Check if new signals arrived
                 if (data.signals && data.signals.length > 0) {
-                    // Clear loading
-                    document.getElementById('signalFeed').innerHTML = '';
+                    const currentIds = data.signals.map(s => s.id).join(',');
+                    const lastIds = lastSignals.map(s => s.id).join(',');
 
-                    // Display signals (newest first)
-                    data.signals.slice().reverse().forEach(signal => {
-                        const parsed = parseTelegramMessage(signal.text);
-                        if (parsed) {
-                            const card = renderSignalCard(parsed);
-                            document.getElementById('signalFeed').appendChild(card);
+                    if (currentIds !== lastIds) {
+                        // New signals detected!
+                        if (!isFirstLoad) {
+                            playNotificationSound();
                         }
-                    });
-
-                    // Update status
-                    document.getElementById('apiStatus').textContent = '● Connected';
-                    document.getElementById('apiStatus').className = 'api-status api-connected';
-                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
-
-                    // Update pair display
-                    if (data.signals[0]) {
-                        const pairMatch = data.signals[0].text.match(/([A-Z]{3}\/[A-Z]{3})/);
-                        if (pairMatch) {
-                            document.getElementById('currentPair').textContent = pairMatch[1];
-                        }
+                        lastSignals = data.signals;
                     }
-                } else {
-                    showEmptyState();
                 }
+
+                isFirstLoad = false;
+
             } catch (error) {
-                console.error('GitHub fetch error:', error);
-                document.getElementById('apiStatus').textContent = '● Using Manual Mode';
-                document.getElementById('apiStatus').className = 'api-status api-disconnected';
-                showEmptyState();
+                console.error('Fetch error:', error);
+                showError(error.message);
             }
         }
 
-        // ===== SHOW EMPTY STATE =====
-        function showEmptyState() {
-            document.getElementById('signalFeed').innerHTML = `
+        // ===== UPDATE UI =====
+        function updateUI(data) {
+            const feed = document.getElementById('signalFeed');
+
+            // Update connection status
+            document.getElementById('apiStatus').textContent = '● Online';
+            document.getElementById('apiStatus').className = 'api-status api-connected';
+            document.getElementById('connectionText').textContent = 'Telegram Connected';
+
+            // Update stats
+            const total = data.total_signals || (data.signals ? data.signals.length : 0);
+            document.getElementById('totalSignals').textContent = total;
+
+            const lastUpdate = data.last_update_readable || new Date().toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = lastUpdate;
+            document.getElementById('lastUpdateTime').textContent = lastUpdate.split(' ')[1] || lastUpdate;
+
+            // Update pair display
+            if (data.signals && data.signals.length > 0) {
+                const latestPair = extractPair(data.signals[data.signals.length - 1].text);
+                document.getElementById('currentPair').textContent = latestPair;
+            }
+
+            // Render signals (newest first)
+            if (data.signals && data.signals.length > 0) {
+                feed.innerHTML = '';
+
+                // Show newest first
+                const sorted = [...data.signals].reverse();
+
+                sorted.forEach(signal => {
+                    const card = renderSignalCard(signal);
+                    feed.appendChild(card);
+                });
+            } else {
+                showEmpty();
+            }
+        }
+
+        // ===== SHOW ERROR =====
+        function showError(message) {
+            const feed = document.getElementById('signalFeed');
+
+            document.getElementById('apiStatus').textContent = '● Error';
+            document.getElementById('apiStatus').className = 'api-status api-disconnected';
+            document.getElementById('connectionText').textContent = 'Connection Failed';
+
+            // Don't overwrite existing signals on error, just show warning
+            if (feed.querySelector('.loading')) {
+                feed.innerHTML = `
+                    <div class="error-state">
+                        <div>⚠️ Cannot load signals</div>
+                        <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">${message}</div>
+                        <button onclick="fetchSignals()">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        // ===== SHOW EMPTY =====
+        function showEmpty() {
+            const feed = document.getElementById('signalFeed');
+            feed.innerHTML = `
                 <div class="empty-state">
                     <div style="font-size: 40px; margin-bottom: 15px;">📭</div>
                     <div>No signals yet</div>
                     <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
-                        Paste a Telegram signal below to display it
+                        Waiting for Telegram messages...
                     </div>
                 </div>
             `;
         }
 
-        // ===== MANUAL ADD =====
-        function addManualSignal() {
-            const text = document.getElementById('pasteArea').value.trim();
-            if (!text) return;
+        // ===== NOTIFICATION SOUND =====
+        function playNotificationSound() {
+            // Simple beep using Web Audio API
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
 
-            const parsed = parseTelegramMessage(text);
-            if (parsed) {
-                // Clear empty state if exists
-                const feed = document.getElementById('signalFeed');
-                if (feed.querySelector('.empty-state') || feed.querySelector('.loading')) {
-                    feed.innerHTML = '';
-                }
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
 
-                // Add to top
-                const card = renderSignalCard(parsed);
-                feed.insertBefore(card, feed.firstChild);
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
 
-                // Clear textarea
-                document.getElementById('pasteArea').value = '';
+                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
 
-                // Update pair
-                document.getElementById('currentPair').textContent = parsed.pair;
-            }
-        }
-
-        // ===== AUTO REFRESH =====
-        function startAutoRefresh() {
-            if (USE_GITHUB_METHOD) {
-                // Refresh every 10 seconds from GitHub
-                fetchFromGitHub();
-                setInterval(fetchFromGitHub, 10000);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            } catch (e) {
+                // Audio not supported, ignore
             }
         }
 
         // ===== INITIALIZE =====
         document.addEventListener('DOMContentLoaded', () => {
-            startAutoRefresh();
+            // First load
+            fetchSignals();
 
-            // Allow Ctrl+Enter to paste
-            document.getElementById('pasteArea').addEventListener('keydown', (e) => {
-                if (e.ctrlKey && e.key === 'Enter') {
-                    addManualSignal();
-                }
-            });
+            // Auto-refresh every 10 seconds
+            setInterval(fetchSignals, REFRESH_INTERVAL);
+
+            console.log('🚀 V12.3 PRO Signal Feed initialized');
+            console.log('📊 Refresh interval:', REFRESH_INTERVAL + 'ms');
+            console.log('📡 Source:', SIGNALS_URL);
         });
     </script>
 </body>
