@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>V12.3 PRO - Live Signal Feed</title>
+    <title>V12.3 PRO Live Dashboard</title>
     <style>
         * {
             margin: 0;
@@ -13,190 +13,163 @@
 
         body {
             font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0a0a12 0%, #151525 50%, #0f1623 100%);
+            background: linear-gradient(135deg, #0d0d15 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
-            padding: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
         }
 
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
+        .dashboard-container {
+            width: 100%;
+            max-width: 450px;
             display: flex;
             flex-direction: column;
             gap: 12px;
         }
 
-        /* Header */
-        .header {
+        /* ===== HEADER CARD - Bot Status ===== */
+        .header-card {
             background: linear-gradient(145deg, #1e1e3f 0%, #2d2d5a 100%);
             border-radius: 16px;
             padding: 20px;
             border: 1px solid rgba(255, 215, 0, 0.3);
-            text-align: center;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { left: -100%; }
-            100% { left: 100%; }
+            text-align: center;
         }
 
         .header-emoji {
             font-size: 36px;
             margin-bottom: 8px;
-            animation: bounce 2s infinite;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
         }
 
         .header-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             color: #ffd700;
             letter-spacing: 1px;
+            margin-bottom: 4px;
         }
 
         .header-pair {
-            font-size: 24px;
+            font-size: 18px;
             color: #64b5f6;
-            font-weight: 900;
+            font-weight: 700;
             margin: 8px 0;
             font-family: 'Consolas', monospace;
         }
 
-        .status-bar {
+        .header-subtitle {
+            font-size: 13px;
+            color: #00ff88;
+            font-weight: 600;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #00ff88;
-            margin-top: 8px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #00ff88;
-            box-shadow: 0 0 12px #00ff88;
-            animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(0.8); }
-        }
-
-        /* Connection Info */
-        .connection-info {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 12px 16px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 12px;
-            border: 1px solid rgba(100, 100, 150, 0.2);
-        }
-
-        .connection-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #8892b0;
-        }
-
-        .connection-right {
-            display: flex;
-            align-items: center;
             gap: 6px;
         }
 
-        .api-status {
-            font-size: 11px;
-            padding: 3px 8px;
+        /* ===== PAIR SELECTOR ===== */
+        .pair-selector {
+            background: linear-gradient(145deg, #1a1a35 0%, #252550 100%);
             border-radius: 12px;
-            font-weight: 600;
-        }
-
-        .api-connected {
-            background: rgba(0, 255, 136, 0.2);
-            color: #00ff88;
-        }
-
-        .api-disconnected {
-            background: rgba(255, 71, 87, 0.2);
-            color: #ff4757;
-        }
-
-        .last-update {
-            color: #ffd700;
-            font-weight: 600;
-        }
-
-        /* Stats Bar */
-        .stats-bar {
+            padding: 12px 16px;
+            border: 1px solid rgba(100, 100, 150, 0.3);
             display: flex;
-            gap: 10px;
-            justify-content: center;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .stat-box {
-            background: rgba(0, 0, 0, 0.3);
-            padding: 10px 15px;
-            border-radius: 8px;
-            text-align: center;
-            flex: 1;
-            border: 1px solid rgba(100, 100, 150, 0.2);
-        }
-
-        .stat-label {
-            font-size: 10px;
+        .pair-label {
+            font-size: 12px;
             color: #8892b0;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
-        .stat-value {
+        .pair-value {
+            font-family: 'Consolas', monospace;
             font-size: 18px;
             font-weight: 800;
             color: #ffd700;
-            margin-top: 4px;
         }
 
-        /* Signal Feed */
-        .signal-feed {
+        .pair-change {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .change-up {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .change-down {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        /* ===== LIVE PRICE TICKER ===== */
+        .price-ticker {
+            background: linear-gradient(145deg, #0f0f23 0%, #1a1a35 100%);
+            padding: 16px 20px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+        }
+
+        .ticker-left {
             display: flex;
             flex-direction: column;
-            gap: 10px;
         }
 
+        .ticker-label {
+            font-size: 11px;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .ticker-pair {
+            font-size: 14px;
+            color: #64b5f6;
+            font-weight: 600;
+        }
+
+        .ticker-right {
+            text-align: right;
+        }
+
+        .ticker-value {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffd700;
+            letter-spacing: 1px;
+        }
+
+        .ticker-pips {
+            font-size: 11px;
+            color: #8892b0;
+            margin-top: 2px;
+        }
+
+        /* ===== SIGNAL CARDS ===== */
         .signal-card {
             background: linear-gradient(145deg, #1a1a35 0%, #252550 100%);
             border-radius: 16px;
             border: 1px solid rgba(100, 100, 150, 0.2);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-            animation: slideIn 0.4s ease-out;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
         .signal-card:hover {
@@ -204,13 +177,9 @@
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-15px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
+        /* Card Header */
         .card-header {
-            padding: 14px 18px;
+            padding: 16px 20px;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -219,116 +188,257 @@
         }
 
         .card-emoji {
-            font-size: 22px;
+            font-size: 24px;
         }
 
         .card-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 800;
             letter-spacing: 0.5px;
             flex: 1;
         }
 
-        .card-time {
-            font-size: 11px;
-            color: #8892b0;
+        .card-pair-badge {
+            background: rgba(100, 181, 246, 0.2);
+            color: #64b5f6;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 700;
             font-family: 'Consolas', monospace;
         }
 
+        /* Divider - Matches Telegram "━━━━━━━━━━━━━━━━━━━━" */
         .divider {
             height: 2px;
             background: linear-gradient(90deg, transparent 0%, rgba(100, 100, 150, 0.6) 15%, rgba(100, 100, 150, 0.6) 85%, transparent 100%);
-            margin: 0 18px;
+            margin: 0 20px;
         }
 
+        .divider-thick {
+            height: 3px;
+            background: linear-gradient(90deg, #ff6b6b 0%, #4ecdc4 50%, #45b7d1 100%);
+            opacity: 0.7;
+        }
+
+        /* Card Body */
         .card-body {
-            padding: 14px 18px;
-            font-size: 13px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            padding: 16px 20px;
         }
 
-        /* Signal Type Colors */
-        .signal-new { border-left: 4px solid #ffd700; }
-        .signal-entry { border-left: 4px solid #00ff88; }
-        .signal-win { 
-            border-left: 4px solid #00ff88; 
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
-        }
-        .signal-loss { 
-            border-left: 4px solid #ff4757; 
-            box-shadow: 0 0 20px rgba(255, 71, 87, 0.15);
-        }
-        .signal-refund { border-left: 4px solid #ffd700; }
-        .signal-martingale { 
-            border-left: 4px solid #ff6b6b; 
-            border: 2px solid rgba(255, 107, 107, 0.3);
+        .signal-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
         }
 
-        /* Loading State */
-        .loading {
+        .signal-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .row-emoji {
+            font-size: 18px;
+            width: 24px;
             text-align: center;
-            padding: 40px;
+        }
+
+        .row-label {
             color: #8892b0;
+            font-weight: 500;
+            min-width: 80px;
         }
 
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 215, 0, 0.3);
-            border-top-color: #ffd700;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #8892b0;
-        }
-
-        .refresh-btn {
-            background: linear-gradient(145deg, #2d2d5a 0%, #1e1e3f 100%);
-            border: 1px solid rgba(255, 215, 0, 0.3);
-            color: #ffd700;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            margin-top: 15px;
-            transition: all 0.2s;
-        }
-
-        .refresh-btn:hover {
-            background: linear-gradient(145deg, #3d3d7a 0%, #2e2e5f 100%);
-            transform: translateY(-1px);
-        }
-
-        /* Error State */
-        .error-state {
-            background: rgba(255, 71, 87, 0.1);
-            border: 1px solid rgba(255, 71, 87, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            color: #ff4757;
-        }
-
-        .error-state button {
-            margin-top: 10px;
-            background: #ff4757;
+        .row-value {
             color: #fff;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        /* Signal Type Badges */
+        .signal-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .signal-type.up {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .signal-type.down {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.4);
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.2);
+        }
+
+        /* Confidence Badges */
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .confidence-high {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+        }
+
+        .confidence-med {
+            background: rgba(78, 205, 196, 0.15);
+            color: #4ecdc4;
+            border: 1px solid rgba(78, 205, 196, 0.4);
+        }
+
+        .confidence-low {
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+        }
+
+        /* Price & Time Styling */
+        .price-value {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 15px;
+            color: #ffd700;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .time-value {
+            font-family: 'Consolas', 'Monaco', monospace;
+            color: #64b5f6;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .countdown {
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            font-size: 16px;
+        }
+
+        /* Result Cards */
+        .result-win {
+            border-left: 4px solid #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .result-loss {
+            border-left: 4px solid #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.3);
+        }
+
+        .result-refund {
+            border-left: 4px solid #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .outcome-win {
+            color: #00ff88;
+            font-weight: 900;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .outcome-loss {
+            color: #ff4757;
+            font-weight: 900;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+
+        .outcome-refund {
+            color: #ffd700;
+            font-weight: 900;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        /* Martingale Card */
+        .martingale-card {
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            background: linear-gradient(145deg, #2d1f1f 0%, #3d2a2a 100%);
+            box-shadow: 0 0 20px rgba(255, 193, 7, 0.2);
+        }
+
+        .martingale-card .card-header {
+            background: rgba(255, 193, 7, 0.15);
+        }
+
+        .mg-step {
+            color: #ffc107;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        /* Status Indicator */
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-online {
+            background: #00ff88;
+            box-shadow: 0 0 12px #00ff88;
+        }
+
+        .status-busy {
+            background: #ff4757;
+            box-shadow: 0 0 12px #ff4757;
+        }
+
+        .status-wait {
+            background: #ffd700;
+            box-shadow: 0 0 12px #ffd700;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.9); }
+        }
+
+        /* Connection Status Bar */
+        .status-bar {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 16px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #8892b0;
+        }
+
+        .status-right {
+            color: #00ff88;
+            font-weight: 600;
         }
 
         /* Scrollbar */
@@ -337,58 +447,333 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #0a0a12;
+            background: #0d0d15;
         }
 
         ::-webkit-scrollbar-thumb {
             background: #2d2d5a;
             border-radius: 3px;
         }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .signal-card {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Hide cards initially - show based on state */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Active state highlight */
+        .active-signal {
+            box-shadow: 0 0 30px rgba(100, 181, 246, 0.3);
+            border-color: rgba(100, 181, 246, 0.5);
+        }
     </style>
+<base target="_blank">
 </head>
 <body>
-    <div class="container">
+    <div class="dashboard-container">
 
-        <!-- Header -->
-        <div class="header">
+        <!-- ===== HEADER: Bot Status with Pair ===== -->
+        <div class="header-card">
             <div class="header-emoji">🚀</div>
-            <div class="header-title">V12.3 PRO SIGNAL FEED</div>
-            <div class="header-pair" id="currentPair">EUR/USD</div>
-            <div class="status-bar">
-                <span class="status-dot"></span>
-                <span>LIVE TELEGRAM FEED</span>
+            <div class="header-title">V12.3 PRO ACTIVATED</div>
+            <div class="header-pair" id="headerPair">EUR/USD</div>
+            <div class="header-subtitle">
+                <span class="status-indicator status-online" id="statusDot"></span>
+                <span id="statusText">ONLINE</span>
             </div>
         </div>
 
-        <!-- Connection Info -->
-        <div class="connection-info">
-            <div class="connection-left">
+        <!-- ===== PAIR SELECTOR / CURRENT PAIR ===== -->
+        <div class="pair-selector">
+            <div>
+                <div class="pair-label">Active Pair</div>
+                <div class="pair-value" id="activePair">EUR/USD</div>
+            </div>
+            <div class="pair-change change-up" id="pairChange">+0.15%</div>
+        </div>
+
+        <!-- ===== LIVE PRICE TICKER with Pair ===== -->
+        <div class="price-ticker">
+            <div class="ticker-left">
+                <div class="ticker-label">Live Price</div>
+                <div class="ticker-pair" id="tickerPair">EUR/USD</div>
+            </div>
+            <div class="ticker-right">
+                <div class="ticker-value" id="livePrice">1.08456</div>
+                <div class="ticker-pips" id="pricePips">+1.2 pips</div>
+            </div>
+        </div>
+
+        <!-- ===== STATUS BAR ===== -->
+        <div class="status-bar">
+            <div class="status-left">
                 <span>📡</span>
-                <span id="connectionText">Connecting...</span>
+                <span>Telegram: Connected</span>
+                <span>|</span>
+                <span>⏱️ IST: <span id="istTime">17:29</span></span>
             </div>
-            <div class="connection-right">
-                <span class="api-status api-disconnected" id="apiStatus">● Offline</span>
-                <span class="last-update" id="lastUpdate">--:--</span>
+            <div class="status-right" id="botStatus">IDLE</div>
+        </div>
+
+        <!-- ===== CARD 1: NEW SIGNAL DETECTED ===== -->
+        <div class="signal-card" id="signalCard">
+            <div class="card-header">
+                <span class="card-emoji">🎯</span>
+                <span class="card-title">NEW SIGNAL DETECTED</span>
+                <span class="card-pair-badge" id="signalPair">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">
+                        <span class="signal-type up" id="signalType">
+                            <span>⬆️</span> CALL
+                        </span>
+                    </span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🔥</span>
+                    <span class="row-label">Confidence:</span>
+                    <span class="row-value">
+                        <span class="confidence-badge confidence-high" id="signalConfidence">
+                            🔥 85%
+                        </span>
+                    </span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value time-value" id="signalEntry">17:45 IST</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⏱️</span>
+                    <span class="row-label">Countdown:</span>
+                    <span class="row-value countdown" id="signalCountdown">45 seconds</span>
+                </div>
             </div>
         </div>
 
-        <!-- Stats -->
-        <div class="stats-bar">
-            <div class="stat-box">
-                <div class="stat-label">Total Signals</div>
-                <div class="stat-value" id="totalSignals">-</div>
+        <!-- ===== CARD 2: ENTRY EXECUTED ===== -->
+        <div class="signal-card" id="entryCard">
+            <div class="card-header">
+                <span class="card-emoji">🚀</span>
+                <span class="card-title">ENTRY EXECUTED</span>
+                <span class="card-pair-badge" id="entryPair">EUR/USD</span>
             </div>
-            <div class="stat-box">
-                <div class="stat-label">Last Update</div>
-                <div class="stat-value" id="lastUpdateTime" style="font-size: 14px;">-</div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value" id="entryPairName">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">
+                        <span class="signal-type up" id="entryType">⬆️ CALL</span>
+                    </span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Confidence:</span>
+                    <span class="row-value">
+                        <span class="confidence-badge confidence-high" id="entryConfidence">🔥 85%</span>
+                    </span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Price:</span>
+                    <span class="row-value price-value" id="entryPrice">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Expiry:</span>
+                    <span class="row-value time-value" id="entryExpiry">17:46 IST</span>
+                </div>
             </div>
         </div>
 
-        <!-- Signal Feed -->
-        <div class="signal-feed" id="signalFeed">
-            <div class="loading">
-                <div class="loading-spinner"></div>
-                <div>Connecting to signal feed...</div>
+        <!-- ===== CARD 3: RESULT - WIN ===== -->
+        <div class="signal-card result-win" id="resultWinCard">
+            <div class="card-header">
+                <span class="card-emoji">✅</span>
+                <span class="card-title">RESULT</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">UP</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🎯</span>
+                    <span class="row-label">Outcome:</span>
+                    <span class="row-value outcome-win">✅ PROFIT</span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value price-value">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Exit:</span>
+                    <span class="row-value price-value">1.08471</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Time:</span>
+                    <span class="row-value time-value">17:46 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CARD 4: MARTINGALE ACTIVATED ===== -->
+        <div class="signal-card martingale-card" id="martingaleCard">
+            <div class="card-header">
+                <span class="card-emoji">⚠️</span>
+                <span class="card-title">MARTINGALE ACTIVATED</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">🔄</span>
+                    <span class="row-label">Step:</span>
+                    <span class="row-value mg-step">1 (Retry Trade)</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬇️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">
+                        <span class="signal-type down">⬇️ PUT</span>
+                    </span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">New Entry:</span>
+                    <span class="row-value price-value">1.08445</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Expiry:</span>
+                    <span class="row-value time-value">17:47 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CARD 5: RESULT - LOSS with MG1 ===== -->
+        <div class="signal-card result-loss" id="resultLossCard">
+            <div class="card-header">
+                <span class="card-emoji">❌</span>
+                <span class="card-title">RESULT [MG1]</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬇️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">DOWN</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🎯</span>
+                    <span class="row-label">Outcome:</span>
+                    <span class="row-value outcome-loss">❌ LOSS</span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value price-value">1.08445</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Exit:</span>
+                    <span class="row-value price-value">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Time:</span>
+                    <span class="row-value time-value">17:47 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CARD 6: RESULT - REFUND ===== -->
+        <div class="signal-card result-refund" id="resultRefundCard">
+            <div class="card-header">
+                <span class="card-emoji">🔄</span>
+                <span class="card-title">RESULT</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">UP</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🎯</span>
+                    <span class="row-label">Outcome:</span>
+                    <span class="row-value outcome-refund">🔄 REFUND</span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value price-value">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Exit:</span>
+                    <span class="row-value price-value">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Time:</span>
+                    <span class="row-value time-value">17:48 IST</span>
+                </div>
             </div>
         </div>
 
@@ -396,228 +781,212 @@
 
     <script>
         // ===== CONFIGURATION =====
-        // URL to your signals.json file in GitHub
-        const SIGNALS_URL = 'https://raw.githubusercontent.com/hypetraderruvin/KingTrader/main/signals.json';
-
-        // Refresh interval (10 seconds)
-        const REFRESH_INTERVAL = 10000;
+        const CONFIG = {
+            pair: 'EUR/USD',
+            expirySeconds: 60,
+            istOffset: 5.5, // IST offset in hours
+            updateInterval: 1000
+        };
 
         // ===== STATE =====
-        let lastSignals = [];
-        let isFirstLoad = true;
+        let state = {
+            currentPrice: 1.08456,
+            signalCountdown: 45,
+            activeCard: 'signal', // signal, entry, result
+            martingaleStep: 0,
+            lastUpdate: Date.now()
+        };
 
-        // ===== PARSE SIGNAL TYPE =====
-        function parseSignalType(text) {
-            if (!text) return { type: 'signal-new', title: '📊 SIGNAL', emoji: '📊' };
+        // ===== UTILITY FUNCTIONS =====
 
-            if (text.includes('🎯 NEW SIGNAL')) {
-                return { type: 'signal-new', title: '🎯 NEW SIGNAL', emoji: '🎯' };
-            } else if (text.includes('🚀 ENTRY')) {
-                return { type: 'signal-entry', title: '🚀 ENTRY EXECUTED', emoji: '🚀' };
-            } else if (text.includes('✅ RESULT') || text.includes('PROFIT')) {
-                return { type: 'signal-win', title: '✅ RESULT - WIN', emoji: '✅' };
-            } else if (text.includes('❌ RESULT') || text.includes('LOSS')) {
-                return { type: 'signal-loss', title: '❌ RESULT - LOSS', emoji: '❌' };
-            } else if (text.includes('🔄 RESULT') || text.includes('REFUND')) {
-                return { type: 'signal-refund', title: '🔄 RESULT - REFUND', emoji: '🔄' };
-            } else if (text.includes('⚠️ MARTINGALE')) {
-                return { type: 'signal-martingale', title: '⚠️ MARTINGALE', emoji: '⚠️' };
-            }
-
-            return { type: 'signal-new', title: '📊 SIGNAL', emoji: '📊' };
+        // Convert to IST time
+        function toIST(date) {
+            return new Date(date.getTime() + (CONFIG.istOffset * 3600000));
         }
 
-        // ===== EXTRACT PAIR =====
-        function extractPair(text) {
-            if (!text) return 'EUR/USD';
-            const match = text.match(/([A-Z]{3}\/[A-Z]{3})/);
-            return match ? match[1] : 'EUR/USD';
+        // Format time as HH:MM
+        function formatTimeIST(date) {
+            const ist = toIST(date);
+            return ist.toTimeString().slice(0, 5) + ' IST';
         }
 
-        // ===== RENDER SIGNAL CARD =====
-        function renderSignalCard(signal) {
-            const parsed = parseSignalType(signal.text);
-            const pair = extractPair(signal.text);
-
-            // Format time
-            let timeStr = signal.date_formatted || 'Unknown';
-            if (signal.date) {
-                const date = new Date(signal.date * 1000);
-                timeStr = date.toLocaleTimeString('en-US', { 
-                    hour: '2-digit', 
-                    minute: '2-digit',
-                    hour12: false 
-                }) + ' IST';
-            }
-
-            const card = document.createElement('div');
-            card.className = `signal-card ${parsed.type}`;
-
-            card.innerHTML = `
-                <div class="card-header">
-                    <span class="card-emoji">${parsed.emoji}</span>
-                    <span class="card-title">${parsed.title}</span>
-                    <span class="card-time">${timeStr}</span>
-                </div>
-                <div class="divider"></div>
-                <div class="card-body">${escapeHtml(signal.text)}</div>
-            `;
-
-            return card;
+        // Format price with 5 decimals
+        function formatPrice(price) {
+            return price.toFixed(5);
         }
 
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // Calculate pips
+        function calculatePips(current, previous) {
+            return ((current - previous) * 10000).toFixed(1);
         }
 
-        // ===== FETCH SIGNALS =====
-        async function fetchSignals() {
-            try {
-                // Add cache-buster to get fresh data
-                const url = SIGNALS_URL + '?t=' + Date.now();
-                const response = await fetch(url);
+        // ===== UPDATE FUNCTIONS =====
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // Update UI
-                updateUI(data);
-
-                // Check if new signals arrived
-                if (data.signals && data.signals.length > 0) {
-                    const currentIds = data.signals.map(s => s.id).join(',');
-                    const lastIds = lastSignals.map(s => s.id).join(',');
-
-                    if (currentIds !== lastIds) {
-                        // New signals detected!
-                        if (!isFirstLoad) {
-                            playNotificationSound();
-                        }
-                        lastSignals = data.signals;
-                    }
-                }
-
-                isFirstLoad = false;
-
-            } catch (error) {
-                console.error('Fetch error:', error);
-                showError(error.message);
-            }
+        function updateClock() {
+            const now = new Date();
+            const ist = toIST(now);
+            document.getElementById('istTime').textContent = 
+                ist.toTimeString().slice(0, 5);
         }
 
-        // ===== UPDATE UI =====
-        function updateUI(data) {
-            const feed = document.getElementById('signalFeed');
+        function updatePrice() {
+            // Simulate price movement
+            const change = (Math.random() - 0.5) * 0.00020;
+            const oldPrice = state.currentPrice;
+            state.currentPrice += change;
 
-            // Update connection status
-            document.getElementById('apiStatus').textContent = '● Online';
-            document.getElementById('apiStatus').className = 'api-status api-connected';
-            document.getElementById('connectionText').textContent = 'Telegram Connected';
+            const priceEl = document.getElementById('livePrice');
+            const pipsEl = document.getElementById('pricePips');
+            const changeEl = document.getElementById('pairChange');
 
-            // Update stats
-            const total = data.total_signals || (data.signals ? data.signals.length : 0);
-            document.getElementById('totalSignals').textContent = total;
+            priceEl.textContent = formatPrice(state.currentPrice);
 
-            const lastUpdate = data.last_update_readable || new Date().toLocaleTimeString();
-            document.getElementById('lastUpdate').textContent = lastUpdate;
-            document.getElementById('lastUpdateTime').textContent = lastUpdate.split(' ')[1] || lastUpdate;
+            const pips = calculatePips(state.currentPrice, oldPrice);
+            const pipsNum = parseFloat(pips);
 
-            // Update pair display
-            if (data.signals && data.signals.length > 0) {
-                const latestPair = extractPair(data.signals[data.signals.length - 1].text);
-                document.getElementById('currentPair').textContent = latestPair;
-            }
-
-            // Render signals (newest first)
-            if (data.signals && data.signals.length > 0) {
-                feed.innerHTML = '';
-
-                // Show newest first
-                const sorted = [...data.signals].reverse();
-
-                sorted.forEach(signal => {
-                    const card = renderSignalCard(signal);
-                    feed.appendChild(card);
-                });
+            if (pipsNum >= 0) {
+                pipsEl.textContent = `+${pips} pips`;
+                pipsEl.style.color = '#00ff88';
+                changeEl.textContent = `+${(pipsNum * 0.01).toFixed(2)}%`;
+                changeEl.className = 'pair-change change-up';
             } else {
-                showEmpty();
+                pipsEl.textContent = `${pips} pips`;
+                pipsEl.style.color = '#ff4757';
+                changeEl.textContent = `${(pipsNum * 0.01).toFixed(2)}%`;
+                changeEl.className = 'pair-change change-down';
             }
         }
 
-        // ===== SHOW ERROR =====
-        function showError(message) {
-            const feed = document.getElementById('signalFeed');
-
-            document.getElementById('apiStatus').textContent = '● Error';
-            document.getElementById('apiStatus').className = 'api-status api-disconnected';
-            document.getElementById('connectionText').textContent = 'Connection Failed';
-
-            // Don't overwrite existing signals on error, just show warning
-            if (feed.querySelector('.loading')) {
-                feed.innerHTML = `
-                    <div class="error-state">
-                        <div>⚠️ Cannot load signals</div>
-                        <div style="font-size: 12px; margin-top: 8px; opacity: 0.8;">${message}</div>
-                        <button onclick="fetchSignals()">Retry</button>
-                    </div>
-                `;
+        function updateCountdown() {
+            if (state.signalCountdown > 0) {
+                state.signalCountdown--;
+                document.getElementById('signalCountdown').textContent = 
+                    state.signalCountdown + ' seconds';
             }
         }
 
-        // ===== SHOW EMPTY =====
-        function showEmpty() {
-            const feed = document.getElementById('signalFeed');
-            feed.innerHTML = `
-                <div class="empty-state">
-                    <div style="font-size: 40px; margin-bottom: 15px;">📭</div>
-                    <div>No signals yet</div>
-                    <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
-                        Waiting for Telegram messages...
-                    </div>
-                </div>
-            `;
+        function updatePairDisplay() {
+            const pair = CONFIG.pair;
+            document.getElementById('headerPair').textContent = pair;
+            document.getElementById('activePair').textContent = pair;
+            document.getElementById('tickerPair').textContent = pair;
+            document.getElementById('signalPair').textContent = pair;
+            document.getElementById('entryPair').textContent = pair;
+            document.getElementById('entryPairName').textContent = pair;
         }
 
-        // ===== NOTIFICATION SOUND =====
-        function playNotificationSound() {
-            // Simple beep using Web Audio API
-            try {
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+        // ===== CARD VISIBILITY CONTROL =====
 
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+        function showCard(cardId) {
+            // Hide all cards first
+            const cards = ['signalCard', 'entryCard', 'resultWinCard', 
+                          'resultLossCard', 'resultRefundCard', 'martingaleCard'];
+            cards.forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
 
-                oscillator.frequency.value = 800;
-                oscillator.type = 'sine';
+            // Show requested card
+            document.getElementById(cardId).classList.remove('hidden');
+            document.getElementById(cardId).classList.add('active-signal');
+        }
 
-                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        function showAllCards() {
+            // Demo mode - show all cards
+            const cards = ['signalCard', 'entryCard', 'resultWinCard', 
+                          'resultLossCard', 'resultRefundCard', 'martingaleCard'];
+            cards.forEach(id => {
+                document.getElementById(id).classList.remove('hidden');
+            });
+        }
 
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.5);
-            } catch (e) {
-                // Audio not supported, ignore
+        // ===== TELEGRAM MESSAGE SIMULATION =====
+
+        function simulateTelegramSignal(type, data) {
+            const timestamp = formatTimeIST(new Date());
+
+            switch(type) {
+                case 'SIGNAL':
+                    return `🎯 NEW SIGNAL DETECTED
+━━━━━━━━━━━━━━━━━━━━
+${data.direction === 'UP' ? '⬆️' : '⬇️'} ${data.direction === 'UP' ? 'CALL' : 'PUT'} | ${CONFIG.pair}
+${data.confidence >= 80 ? '🔥' : '📊'} Confidence: ${data.confidence}%
+━━━━━━━━━━━━━━━━━━━━
+🕐 Entry: ${data.entryTime} IST
+Countdown: ${data.countdown} seconds`;
+
+                case 'ENTRY':
+                    return `🚀 ENTRY EXECUTED
+━━━━━━━━━━━━━━━━━━━━
+Pair: ${CONFIG.pair}
+Type: ${data.direction}
+📊 Confidence: ${data.confidence}%
+━━━━━━━━━━━━━━━━━━━━
+💰 Price: ${data.price}
+🕐 Expiry: ${data.expiry} IST`;
+
+                case 'RESULT':
+                    const emoji = data.result === 'WIN' ? '✅' : data.result === 'LOSS' ? '❌' : '🔄';
+                    const mgText = data.martingale ? ' [MG1]' : '';
+                    return `${emoji} RESULT${mgText}
+━━━━━━━━━━━━━━━━━━━━
+Pair:    ${CONFIG.pair}
+Type:    ${data.direction}
+Outcome: ${data.result === 'WIN' ? 'PROFIT' : data.result === 'LOSS' ? 'LOSS' : 'REFUND'}
+━━━━━━━━━━━━━━━━━━━━
+💰 Entry: ${data.entryPrice}
+💰 Exit:  ${data.exitPrice}
+🕐 ${timestamp}`;
+
+                case 'MARTINGALE':
+                    return `⚠️ MARTINGALE ACTIVATED
+━━━━━━━━━━━━━━━━━━━━
+Step: 1 (Retry Trade)
+Type: ${data.direction}
+💰 New Entry: ${data.price}
+🕐 Expiry: ${data.expiry} IST`;
             }
         }
 
-        // ===== INITIALIZE =====
-        document.addEventListener('DOMContentLoaded', () => {
-            // First load
-            fetchSignals();
+        // ===== MAIN LOOP =====
 
-            // Auto-refresh every 10 seconds
-            setInterval(fetchSignals, REFRESH_INTERVAL);
+        function mainLoop() {
+            updateClock();
+            updatePrice();
+            updateCountdown();
+        }
 
-            console.log('🚀 V12.3 PRO Signal Feed initialized');
-            console.log('📊 Refresh interval:', REFRESH_INTERVAL + 'ms');
-            console.log('📡 Source:', SIGNALS_URL);
+        // ===== INITIALIZATION =====
+
+        function init() {
+            updatePairDisplay();
+            updateClock();
+
+            // Start main loop
+            setInterval(mainLoop, 1000);
+
+            // Show all cards for demo (in production, use showCard() to show only active)
+            showAllCards();
+
+            console.log('🚀 V12.3 PRO Dashboard Initialized');
+            console.log('📊 Pair:', CONFIG.pair);
+            console.log('🕐 IST Time:', formatTimeIST(new Date()));
+        }
+
+        // Start when DOM is ready
+        document.addEventListener('DOMContentLoaded', init);
+
+        // ===== KEYBOARD CONTROLS (Demo) =====
+
+        document.addEventListener('keydown', (e) => {
+            switch(e.key) {
+                case '1': showCard('signalCard'); break;
+                case '2': showCard('entryCard'); break;
+                case '3': showCard('resultWinCard'); break;
+                case '4': showCard('resultLossCard'); break;
+                case '5': showCard('resultRefundCard'); break;
+                case '6': showCard('martingaleCard'); break;
+                case '0': showAllCards(); break;
+            }
         });
     </script>
 </body>
