@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V12.3 PRO Live Dashboard - Real-Time</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a12 0%, #151525 50%, #0f1623 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* ===== HEADER ===== */
+        .header-card {
+            background: linear-gradient(145deg, #1e1e3f 0%, #2d2d5a 100%);
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 20px rgba(255, 215, 0, 0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .header-emoji {
+            font-size: 36px;
+            margin-bottom: 6px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffd700;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+
+        .header-pair {
+            font-size: 28px;
+            color: #64b5f6;
+            font-weight: 900;
+            margin: 10px 0;
+            font-family: 'Consolas', monospace;
+            text-shadow: 0 0 15px rgba(100, 181, 246, 0.5);
+            letter-spacing: 2px;
+        }
+
+        .header-subtitle {
+            font-size: 13px;
+            color: #00ff88;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .status-online {
+            background: #00ff88;
+            box-shadow: 0 0 12px #00ff88, 0 0 20px #00ff88;
+        }
+
+        .status-busy {
+            background: #ff4757;
+            box-shadow: 0 0 12px #ff4757;
+        }
+
+        .status-wait {
+            background: #ffd700;
+            box-shadow: 0 0 12px #ffd700;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8); }
+        }
+
+        /* ===== LIVE PRICE TICKER ===== */
+        .price-ticker {
+            background: linear-gradient(145deg, #0a0a1a 0%, #151530 100%);
+            padding: 20px;
+            border-radius: 16px;
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.15), inset 0 0 20px rgba(255, 215, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticker-left {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ticker-label {
+            font-size: 11px;
+            color: #8892b0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .ticker-pair {
+            font-size: 16px;
+            color: #64b5f6;
+            font-weight: 700;
+            font-family: 'Consolas', monospace;
+        }
+
+        .ticker-right {
+            text-align: right;
+        }
+
+        .ticker-value {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 32px;
+            font-weight: 900;
+            color: #ffd700;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .ticker-value.up {
+            color: #00ff88;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+
+        .ticker-value.down {
+            color: #ff4757;
+            text-shadow: 0 0 15px rgba(255, 71, 87, 0.4);
+        }
+
+        .ticker-pips {
+            font-size: 13px;
+            margin-top: 4px;
+            font-weight: 700;
+        }
+
+        .ticker-pips.up { color: #00ff88; }
+        .ticker-pips.down { color: #ff4757; }
+
+        .live-badge {
+            position: absolute;
+            top: 8px;
+            right: 12px;
+            background: rgba(255, 71, 87, 0.9);
+            color: #fff;
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* ===== CONNECTION BAR ===== */
+        .connection-bar {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 16px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            border: 1px solid rgba(100, 100, 150, 0.2);
+        }
+
+        .connection-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #8892b0;
+        }
+
+        .connection-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+        }
+
+        .api-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00ff88;
+        }
+
+        .api-dot.error {
+            background: #ff4757;
+        }
+
+        .api-dot.loading {
+            background: #ffd700;
+            animation: pulse 1s infinite;
+        }
+
+        .bot-status {
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+        }
+
+        .status-idle {
+            background: rgba(136, 146, 176, 0.2);
+            color: #8892b0;
+        }
+
+        .status-signal {
+            background: rgba(255, 215, 0, 0.2);
+            color: #ffd700;
+        }
+
+        .status-entry {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+        }
+
+        .status-trade {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+        }
+
+        /* ===== SIGNAL CARDS ===== */
+        .signal-card {
+            background: linear-gradient(145deg, #1a1a35 0%, #252550 100%);
+            border-radius: 16px;
+            border: 1px solid rgba(100, 100, 150, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+        .signal-card.active {
+            display: block;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .signal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Card Header */
+        .card-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .card-emoji {
+            font-size: 24px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            flex: 1;
+        }
+
+        .card-pair-badge {
+            background: rgba(100, 181, 246, 0.2);
+            color: #64b5f6;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 800;
+            font-family: 'Consolas', monospace;
+            border: 1px solid rgba(100, 181, 246, 0.3);
+        }
+
+        /* Divider */
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, rgba(100, 100, 150, 0.6) 15%, rgba(100, 100, 150, 0.6) 85%, transparent 100%);
+            margin: 0 20px;
+        }
+
+        /* Card Body */
+        .card-body {
+            padding: 16px 20px;
+        }
+
+        .signal-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+
+        .signal-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .row-emoji {
+            font-size: 18px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .row-label {
+            color: #8892b0;
+            font-weight: 500;
+            min-width: 85px;
+        }
+
+        .row-value {
+            color: #fff;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        /* Signal Type */
+        .signal-type {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 13px;
+            animation: glow 2s infinite alternate;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 5px currentColor; }
+            to { box-shadow: 0 0 15px currentColor, 0 0 25px currentColor; }
+        }
+
+        .signal-type.up {
+            background: rgba(0, 255, 136, 0.15);
+            color: #00ff88;
+            border: 1px solid rgba(0, 255, 136, 0.4);
+        }
+
+        .signal-type.down {
+            background: rgba(255, 71, 87, 0.15);
+            color: #ff4757;
+            border: 1px solid rgba(255, 71, 87, 0.4);
+        }
+
+        /* Confidence */
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .confidence-high {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+            border: 1px solid rgba(255, 107, 107, 0.4);
+            animation: pulse-glow 1.5s infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 5px rgba(255, 107, 107, 0.4); }
+            50% { box-shadow: 0 0 15px rgba(255, 107, 107, 0.6); }
+        }
+
+        .confidence-med {
+            background: rgba(78, 205, 196, 0.15);
+            color: #4ecdc4;
+            border: 1px solid rgba(78, 205, 196, 0.4);
+        }
+
+        .confidence-low {
+            background: rgba(255, 215, 0, 0.15);
+            color: #ffd700;
+            border: 1px solid rgba(255, 215, 0, 0.4);
+        }
+
+        /* Price & Time */
+        .price-value {
+            font-family: 'Consolas', monospace;
+            font-size: 15px;
+            color: #ffd700;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .time-value {
+            font-family: 'Consolas', monospace;
+            color: #64b5f6;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .countdown {
+            background: linear-gradient(90deg, #ff6b6b, #feca57);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        /* Result Cards */
+        .result-win {
+            border: 2px solid rgba(0, 255, 136, 0.4);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.2);
+        }
+
+        .result-loss {
+            border: 2px solid rgba(255, 71, 87, 0.4);
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.2);
+        }
+
+        .result-refund {
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .outcome-win {
+            color: #00ff88;
+            font-weight: 900;
+            font-size: 18px;
+            text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        .outcome-loss {
+            color: #ff4757;
+            font-weight: 900;
+            font-size: 18px;
+            text-shadow: 0 0 15px rgba(255, 71, 87, 0.6);
+        }
+
+        .outcome-refund {
+            color: #ffd700;
+            font-weight: 900;
+            font-size: 18px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Martingale */
+        .martingale-card {
+            border: 2px solid rgba(255, 193, 7, 0.5);
+            background: linear-gradient(145deg, #2d1f1f 0%, #3d2a2a 100%);
+            box-shadow: 0 0 30px rgba(255, 193, 7, 0.3);
+        }
+
+        .martingale-card .card-header {
+            background: rgba(255, 193, 7, 0.15);
+        }
+
+        .mg-step {
+            color: #ffc107;
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        /* Controls */
+        .controls {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-btn {
+            background: linear-gradient(145deg, #2d2d5a 0%, #1e1e3f 100%);
+            border: 1px solid rgba(100, 100, 150, 0.3);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .control-btn:hover {
+            background: linear-gradient(145deg, #3d3d7a 0%, #2e2e5f 100%);
+            border-color: rgba(255, 215, 0, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .control-btn.active {
+            background: linear-gradient(145deg, #ffd700 0%, #ffaa00 100%);
+            color: #000;
+            border-color: #ffd700;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0a12;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2d2d5a;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+
+        <!-- HEADER -->
+        <div class="header-card">
+            <div class="header-emoji">🚀</div>
+            <div class="header-title">V12.3 PRO ACTIVATED</div>
+            <div class="header-pair" id="headerPair">EUR/USD</div>
+            <div class="header-subtitle">
+                <span class="status-indicator status-online" id="statusDot"></span>
+                <span id="statusText">LIVE DATA CONNECTED</span>
+            </div>
+        </div>
+
+        <!-- LIVE PRICE TICKER -->
+        <div class="price-ticker">
+            <span class="live-badge">LIVE</span>
+            <div class="ticker-left">
+                <div class="ticker-label">Live Price</div>
+                <div class="ticker-pair" id="tickerPair">EUR/USD</div>
+            </div>
+            <div class="ticker-right">
+                <div class="ticker-value" id="livePrice">1.08456</div>
+                <div class="ticker-pips" id="pricePips">+0.0 pips</div>
+            </div>
+        </div>
+
+        <!-- CONNECTION BAR -->
+        <div class="connection-bar">
+            <div class="connection-left">
+                <span>📡</span>
+                <span>Telegram: Connected</span>
+                <span>|</span>
+                <span>⏱️ IST: <span id="istTime">--:--</span></span>
+            </div>
+            <div class="connection-right">
+                <div class="api-status">
+                    <span class="api-dot" id="apiDot"></span>
+                    <span id="apiStatus">API: Connecting...</span>
+                </div>
+                <div class="bot-status status-idle" id="botStatus">IDLE</div>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls">
+            <button class="control-btn" onclick="showCard('signalCard')">🎯 Signal</button>
+            <button class="control-btn" onclick="showCard('entryCard')">🚀 Entry</button>
+            <button class="control-btn" onclick="showCard('resultWinCard')">✅ Win</button>
+            <button class="control-btn" onclick="showCard('resultLossCard')">❌ Loss</button>
+            <button class="control-btn" onclick="showCard('resultRefundCard')">🔄 Refund</button>
+            <button class="control-btn" onclick="showCard('martingaleCard')">⚠️ MG</button>
+            <button class="control-btn" onclick="startAutoSequence()">▶️ Auto</button>
+            <button class="control-btn" onclick="toggleDataSource()">🔄 API/Sim</button>
+        </div>
+
+        <!-- SIGNAL CARD -->
+        <div class="signal-card active" id="signalCard">
+            <div class="card-header">
+                <span class="card-emoji">🎯</span>
+                <span class="card-title">NEW SIGNAL DETECTED</span>
+                <span class="card-pair-badge" id="signalPairBadge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">
+                        <span class="signal-type up" id="signalType">⬆️ CALL</span>
+                    </span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🔥</span>
+                    <span class="row-label">Confidence:</span>
+                    <span class="row-value">
+                        <span class="confidence-badge confidence-high" id="signalConfidence">🔥 85%</span>
+                    </span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value time-value" id="signalEntry">17:45 IST</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⏱️</span>
+                    <span class="row-label">Countdown:</span>
+                    <span class="row-value countdown" id="signalCountdown">60s</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENTRY CARD -->
+        <div class="signal-card" id="entryCard">
+            <div class="card-header">
+                <span class="card-emoji">🚀</span>
+                <span class="card-title">ENTRY EXECUTED</span>
+                <span class="card-pair-badge" id="entryPairBadge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value" id="entryPairName">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">
+                        <span class="signal-type up" id="entryType">⬆️ CALL</span>
+                    </span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Confidence:</span>
+                    <span class="row-value">
+                        <span class="confidence-badge confidence-high" id="entryConfidence">🔥 85%</span>
+                    </span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Price:</span>
+                    <span class="row-value price-value" id="entryPrice">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Expiry:</span>
+                    <span class="row-value time-value" id="entryExpiry">17:46 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT WIN -->
+        <div class="signal-card result-win" id="resultWinCard">
+            <div class="card-header">
+                <span class="card-emoji">✅</span>
+                <span class="card-title">RESULT</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">UP</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🎯</span>
+                    <span class="row-label">Outcome:</span>
+                    <span class="row-value outcome-win">✅ PROFIT</span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value price-value" id="winEntryPrice">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Exit:</span>
+                    <span class="row-value price-value" id="winExitPrice">1.08471</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Time:</span>
+                    <span class="row-value time-value" id="winTime">17:46 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT LOSS -->
+        <div class="signal-card result-loss" id="resultLossCard">
+            <div class="card-header">
+                <span class="card-emoji">❌</span>
+                <span class="card-title">RESULT [MG1]</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬇️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">DOWN</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🎯</span>
+                    <span class="row-label">Outcome:</span>
+                    <span class="row-value outcome-loss">❌ LOSS</span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value price-value" id="lossEntryPrice">1.08445</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Exit:</span>
+                    <span class="row-value price-value" id="lossExitPrice">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Time:</span>
+                    <span class="row-value time-value" id="lossTime">17:47 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- RESULT REFUND -->
+        <div class="signal-card result-refund" id="resultRefundCard">
+            <div class="card-header">
+                <span class="card-emoji">🔄</span>
+                <span class="card-title">RESULT</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">📊</span>
+                    <span class="row-label">Pair:</span>
+                    <span class="row-value">EUR/USD</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬆️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">UP</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🎯</span>
+                    <span class="row-label">Outcome:</span>
+                    <span class="row-value outcome-refund">🔄 REFUND</span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Entry:</span>
+                    <span class="row-value price-value" id="refundEntryPrice">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">Exit:</span>
+                    <span class="row-value price-value" id="refundExitPrice">1.08452</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Time:</span>
+                    <span class="row-value time-value" id="refundTime">17:48 IST</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- MARTINGALE -->
+        <div class="signal-card martingale-card" id="martingaleCard">
+            <div class="card-header">
+                <span class="card-emoji">⚠️</span>
+                <span class="card-title">MARTINGALE ACTIVATED</span>
+                <span class="card-pair-badge">EUR/USD</span>
+            </div>
+            <div class="divider"></div>
+            <div class="card-body">
+                <div class="signal-row">
+                    <span class="row-emoji">🔄</span>
+                    <span class="row-label">Step:</span>
+                    <span class="row-value mg-step">1 (Retry Trade)</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">⬇️</span>
+                    <span class="row-label">Type:</span>
+                    <span class="row-value">
+                        <span class="signal-type down">⬇️ PUT</span>
+                    </span>
+                </div>
+                <div class="divider"></div>
+                <div class="signal-row">
+                    <span class="row-emoji">💰</span>
+                    <span class="row-label">New Entry:</span>
+                    <span class="row-value price-value" id="mgPrice">1.08445</span>
+                </div>
+                <div class="signal-row">
+                    <span class="row-emoji">🕐</span>
+                    <span class="row-label">Expiry:</span>
+                    <span class="row-value time-value" id="mgExpiry">17:47 IST</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            pair: 'EUR/USD',
+            base: 'EUR',
+            quote: 'USD',
+            expirySeconds: 60,
+            istOffset: 5.5,
+            useRealAPI: true,
+            apiURL: 'https://api.exchangerate.host/live?base=EUR&symbols=USD',
+            backupURL: 'https://open.er-api.com/v6/latest/EUR',
+            updateInterval: 2000, // 2 seconds for real-time feel
+            priceDecimals: 5
+        };
+
+        // ===== STATE =====
+        let state = {
+            currentPrice: 1.08456,
+            previousPrice: 1.08456,
+            signalCountdown: 60,
+            activeCard: 'signalCard',
+            martingaleStep: 0,
+            lastUpdate: Date.now(),
+            apiConnected: false,
+            priceHistory: [],
+            autoSequence: false,
+            sequenceStep: 0
+        };
+
+        // ===== UTILITY FUNCTIONS =====
+
+        function toIST(date) {
+            return new Date(date.getTime() + (CONFIG.istOffset * 3600000));
+        }
+
+        function formatTimeIST(date) {
+            const ist = toIST(date);
+            return ist.toTimeString().slice(0, 5) + ' IST';
+        }
+
+        function formatPrice(price) {
+            return price.toFixed(CONFIG.priceDecimals);
+        }
+
+        function calculatePips(current, previous) {
+            return ((current - previous) * 10000).toFixed(1);
+        }
+
+        // ===== LIVE DATA FETCHING =====
+
+        async function fetchLivePrice() {
+            const apiDot = document.getElementById('apiDot');
+            const apiStatus = document.getElementById('apiStatus');
+
+            apiDot.className = 'api-dot loading';
+            apiStatus.textContent = 'API: Fetching...';
+
+            try {
+                let response;
+                let data;
+
+                if (CONFIG.useRealAPI) {
+                    // Try primary API
+                    try {
+                        response = await fetch(CONFIG.apiURL);
+                        data = await response.json();
+
+                        if (data.rates && data.rates.USD) {
+                            state.currentPrice = data.rates.USD;
+                        } else if (data.rate) {
+                            state.currentPrice = data.rate;
+                        }
+                    } catch (e) {
+                        // Fallback to backup API
+                        response = await fetch(CONFIG.backupURL);
+                        data = await response.json();
+
+                        if (data.rates && data.rates.USD) {
+                            state.currentPrice = data.rates.USD;
+                        }
+                    }
+
+                    state.apiConnected = true;
+                    apiDot.className = 'api-dot';
+                    apiStatus.textContent = 'API: Live Data';
+                } else {
+                    // Simulation mode with realistic movement
+                    simulatePriceMovement();
+                    apiDot.className = 'api-dot loading';
+                    apiStatus.textContent = 'API: Simulation';
+                }
+
+                updatePriceDisplay();
+
+            } catch (error) {
+                console.error('API Error:', error);
+                state.apiConnected = false;
+                apiDot.className = 'api-dot error';
+                apiStatus.textContent = 'API: Error - Using Sim';
+
+                // Fallback to simulation
+                simulatePriceMovement();
+                updatePriceDisplay();
+            }
+        }
+
+        function simulatePriceMovement() {
+            // Realistic forex movement simulation
+            const volatility = 0.00015; // 1.5 pips typical movement
+            const trend = (Math.random() - 0.5) * 0.00005;
+            const noise = (Math.random() - 0.5) * volatility;
+
+            state.currentPrice = state.currentPrice + trend + noise;
+
+            // Keep within realistic EUR/USD range
+            if (state.currentPrice < 1.05) state.currentPrice = 1.05;
+            if (state.currentPrice > 1.15) state.currentPrice = 1.15;
+        }
+
+        function updatePriceDisplay() {
+            const priceEl = document.getElementById('livePrice');
+            const pipsEl = document.getElementById('pricePips');
+
+            const pips = calculatePips(state.currentPrice, state.previousPrice);
+            const pipsNum = parseFloat(pips);
+
+            priceEl.textContent = formatPrice(state.currentPrice);
+
+            // Color coding
+            if (pipsNum > 0) {
+                priceEl.className = 'ticker-value up';
+                pipsEl.className = 'ticker-pips up';
+                pipsEl.textContent = `+${pips} pips ▲`;
+            } else if (pipsNum < 0) {
+                priceEl.className = 'ticker-value down';
+                pipsEl.className = 'ticker-pips down';
+                pipsEl.textContent = `${pips} pips ▼`;
+            } else {
+                priceEl.className = 'ticker-value';
+                pipsEl.className = 'ticker-pips';
+                pipsEl.textContent = `${pips} pips —`;
+            }
+
+            // Store for next comparison
+            state.previousPrice = state.currentPrice;
+            state.priceHistory.push(state.currentPrice);
+            if (state.priceHistory.length > 100) state.priceHistory.shift();
+
+            // Update all card prices
+            updateCardPrices();
+        }
+
+        function updateCardPrices() {
+            document.getElementById('entryPrice').textContent = formatPrice(state.currentPrice);
+            document.getElementById('winEntryPrice').textContent = formatPrice(state.currentPrice);
+            document.getElementById('winExitPrice').textContent = formatPrice(state.currentPrice + 0.00019);
+            document.getElementById('lossEntryPrice').textContent = formatPrice(state.currentPrice);
+            document.getElementById('lossExitPrice').textContent = formatPrice(state.currentPrice + 0.00007);
+            document.getElementById('refundEntryPrice').textContent = formatPrice(state.currentPrice);
+            document.getElementById('refundExitPrice').textContent = formatPrice(state.currentPrice);
+            document.getElementById('mgPrice').textContent = formatPrice(state.currentPrice);
+        }
+
+        // ===== TIME & COUNTDOWN =====
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('istTime').textContent = formatTimeIST(now).replace(' IST', '');
+
+            // Update entry/expiry times based on current time
+            updateSignalTimes();
+        }
+
+        function updateSignalTimes() {
+            const now = new Date();
+            const ist = toIST(now);
+
+            // Round to next minute for entry
+            const entryTime = new Date(ist);
+            entryTime.setSeconds(0);
+            entryTime.setMilliseconds(0);
+            entryTime.setMinutes(entryTime.getMinutes() + 1);
+
+            const expiryTime = new Date(entryTime);
+            expiryTime.setMinutes(expiryTime.getMinutes() + 1);
+
+            const timeStr = entryTime.toTimeString().slice(0, 5) + ' IST';
+            const expiryStr = expiryTime.toTimeString().slice(0, 5) + ' IST';
+
+            document.getElementById('signalEntry').textContent = timeStr;
+            document.getElementById('entryExpiry').textContent = expiryStr;
+            document.getElementById('winTime').textContent = expiryStr;
+            document.getElementById('lossTime').textContent = expiryStr;
+            document.getElementById('refundTime').textContent = expiryStr;
+            document.getElementById('mgExpiry').textContent = expiryStr;
+        }
+
+        function updateCountdown() {
+            if (state.signalCountdown > 0) {
+                state.signalCountdown--;
+                document.getElementById('signalCountdown').textContent = state.signalCountdown + 's';
+
+                if (state.signalCountdown <= 10) {
+                    document.getElementById('signalCountdown').style.color = '#ff4757';
+                }
+            } else {
+                state.signalCountdown = 60;
+                document.getElementById('signalCountdown').textContent = '60s';
+                document.getElementById('signalCountdown').style.color = '';
+            }
+        }
+
+        // ===== CARD MANAGEMENT =====
+
+        function showCard(cardId) {
+            // Hide all cards
+            const cards = ['signalCard', 'entryCard', 'resultWinCard', 
+                          'resultLossCard', 'resultRefundCard', 'martingaleCard'];
+            cards.forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+
+            // Show requested card
+            document.getElementById(cardId).classList.add('active');
+            state.activeCard = cardId;
+
+            // Update bot status
+            updateBotStatus(cardId);
+
+            // Update button states
+            document.querySelectorAll('.control-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function updateBotStatus(cardId) {
+            const statusEl = document.getElementById('botStatus');
+            const dotEl = document.getElementById('statusDot');
+            const textEl = document.getElementById('statusText');
+
+            switch(cardId) {
+                case 'signalCard':
+                    statusEl.className = 'bot-status status-signal';
+                    statusEl.textContent = 'SIGNAL PENDING';
+                    dotEl.className = 'status-indicator status-wait';
+                    textEl.textContent = 'AWAITING ENTRY';
+                    break;
+                case 'entryCard':
+                    statusEl.className = 'bot-status status-entry';
+                    statusEl.textContent = 'ENTRY EXECUTED';
+                    dotEl.className = 'status-indicator status-online';
+                    textEl.textContent = 'TRADE ACTIVE';
+                    break;
+                case 'resultWinCard':
+                    statusEl.className = 'bot-status status-entry';
+                    statusEl.textContent = 'WIN CONFIRMED';
+                    dotEl.className = 'status-indicator status-online';
+                    textEl.textContent = 'PROFIT LOCKED';
+                    break;
+                case 'resultLossCard':
+                    statusEl.className = 'bot-status status-trade';
+                    statusEl.textContent = 'LOSS - MG ACTIVE';
+                    dotEl.className = 'status-indicator status-busy';
+                    textEl.textContent = 'MARTINGALE MODE';
+                    break;
+                case 'resultRefundCard':
+                    statusEl.className = 'bot-status status-idle';
+                    statusEl.textContent = 'REFUNDED';
+                    dotEl.className = 'status-indicator status-wait';
+                    textEl.textContent = 'STANDBY';
+                    break;
+                case 'martingaleCard':
+                    statusEl.className = 'bot-status status-trade';
+                    statusEl.textContent = 'MARTINGALE STEP 1';
+                    dotEl.className = 'status-indicator status-busy';
+                    textEl.textContent = 'RETRY TRADE';
+                    break;
+            }
+        }
+
+        // ===== AUTO SEQUENCE =====
+
+        function startAutoSequence() {
+            if (state.autoSequence) {
+                state.autoSequence = false;
+                return;
+            }
+
+            state.autoSequence = true;
+            state.sequenceStep = 0;
+
+            const sequence = ['signalCard', 'entryCard', 'resultWinCard', 'martingaleCard', 'resultLossCard'];
+            const delays = [0, 5000, 10000, 15000, 20000]; // 5 second intervals
+
+            sequence.forEach((card, index) => {
+                setTimeout(() => {
+                    if (state.autoSequence) {
+                        // Simulate button click
+                        const btn = document.querySelector(`button[onclick="showCard('${card}')"]`);
+                        if (btn) btn.click();
+                    }
+                }, delays[index]);
+            });
+
+            // Stop after sequence
+            setTimeout(() => {
+                state.autoSequence = false;
+            }, 25000);
+        }
+
+        function toggleDataSource() {
+            CONFIG.useRealAPI = !CONFIG.useRealAPI;
+            const btn = event.target;
+            btn.textContent = CONFIG.useRealAPI ? '🔄 API Mode' : '🔄 Sim Mode';
+            fetchLivePrice();
+        }
+
+        // ===== PAIR SWITCHING =====
+
+        function switchPair(newPair, base, quote) {
+            CONFIG.pair = newPair;
+            CONFIG.base = base;
+            CONFIG.quote = quote;
+            CONFIG.apiURL = `https://api.exchangerate.host/live?base=${base}&symbols=${quote}`;
+            CONFIG.backupURL = `https://open.er-api.com/v6/latest/${base}`;
+
+            // Update all pair displays
+            document.getElementById('headerPair').textContent = newPair;
+            document.getElementById('tickerPair').textContent = newPair;
+            document.querySelectorAll('.card-pair-badge').forEach(el => el.textContent = newPair);
+            document.querySelectorAll('#signalPairName, #entryPairName').forEach(el => {
+                if (el) el.textContent = newPair;
+            });
+
+            // Reset price
+            state.currentPrice = 1.0;
+            state.previousPrice = 1.0;
+            fetchLivePrice();
+        }
+
+        // ===== MAIN LOOP =====
+
+        function mainLoop() {
+            updateClock();
+            updateCountdown();
+        }
+
+        // ===== INITIALIZATION =====
+
+        function init() {
+            updateClock();
+            fetchLivePrice();
+
+            // Start loops
+            setInterval(mainLoop, 1000);
+            setInterval(fetchLivePrice, CONFIG.updateInterval);
+
+            console.log('🚀 V12.3 PRO Live Dashboard Initialized');
+            console.log('📊 Pair:', CONFIG.pair);
+            console.log('🌐 API Mode:', CONFIG.useRealAPI ? 'LIVE' : 'SIMULATION');
+            console.log('⏱️ Update Interval:', CONFIG.updateInterval + 'ms');
+
+            // Set initial active button
+            document.querySelector('button[onclick="showCard('signalCard')"]').classList.add('active');
+        }
+
+        // Start
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            const keyMap = {
+                '1': 'signalCard',
+                '2': 'entryCard', 
+                '3': 'resultWinCard',
+                '4': 'resultLossCard',
+                '5': 'resultRefundCard',
+                '6': 'martingaleCard',
+                ' ': () => startAutoSequence(),
+                'a': () => switchPair('AUD/USD', 'AUD', 'USD'),
+                'e': () => switchPair('EUR/USD', 'EUR', 'USD'),
+                'g': () => switchPair('GBP/USD', 'GBP', 'USD'),
+                'u': () => switchPair('USD/JPY', 'USD', 'JPY')
+            };
+
+            if (keyMap[e.key]) {
+                if (typeof keyMap[e.key] === 'function') {
+                    keyMap[e.key]();
+                } else {
+                    const btn = document.querySelector(`button[onclick="showCard('${keyMap[e.key]}')"]`);
+                    if (btn) btn.click();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
