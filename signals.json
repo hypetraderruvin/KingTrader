@@ -1,0 +1,16 @@
+{
+  "last_update": "2026-04-03T18:54:07.891070",
+  "last_update_readable": "2026-04-03 18:54:07 IST",
+  "bot_token_last4": "mp9w",
+  "channel_id": "-1003702645985",
+  "total_signals": 1,
+  "signals": [
+    {
+      "id": 2339,
+      "text": "Hi",
+      "date": 1775242445,
+      "date_formatted": "2026-04-03 18:54:05",
+      "update_id": 153778764
+    }
+  ]
+}
